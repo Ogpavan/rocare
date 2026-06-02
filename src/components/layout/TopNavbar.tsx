@@ -6,6 +6,7 @@ import {
   Search,
   SlidersHorizontal,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 
@@ -14,6 +15,8 @@ type TopNavbarProps = {
 }
 
 export function TopNavbar({ onMenuClick }: TopNavbarProps) {
+  const navigate = useNavigate()
+
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b bg-card/95 backdrop-blur admin-nav-shadow">
       <div className="relative flex h-[70px] items-center justify-between px-4 sm:px-6 lg:px-7">
@@ -67,7 +70,8 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
           </Button>
           <button
             type="button"
-            className="ml-1 grid h-9 w-9 place-items-center rounded-md border bg-[#eef2ff] text-xs font-semibold text-foreground shadow-sm"
+            onClick={() => navigate('/profile')}
+            className="ml-1 grid h-9 w-9 cursor-pointer place-items-center rounded-md border bg-[#eef2ff] text-xs font-semibold text-foreground shadow-sm"
             aria-label="User profile"
           >
             AK

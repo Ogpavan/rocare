@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Download, IndianRupee, Phone, Plus, Receipt, Search } from 'lucide-react'
+import { CalendarClock, ChevronDown, Download, IndianRupee, Phone, Plus, Receipt, Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -44,17 +44,23 @@ export function Payments() {
       <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-[28px]">Payments</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Track paid, pending, and overdue customer payments.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline"><Download size={16} strokeWidth={1.75} />Export</Button>
-          <Button type="button"><Plus size={16} strokeWidth={1.75} />Add Payment</Button>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <Button type="button" variant="outline" className="w-full sm:w-auto"><Download size={16} strokeWidth={1.75} />Export</Button>
+          <Button type="button" className="w-full sm:w-auto"><Plus size={16} strokeWidth={1.75} />Add Payment</Button>
         </div>
       </section>
       <section className="space-y-4">
         <Toolbar search={search} onSearch={setSearch} value={status} onChange={(value) => setStatus(value as PaymentStatus | 'All')} />
         <p className="text-sm text-muted-foreground">Showing {filteredPayments.length} of {payments.length} payments</p>
-        {filteredPayments.length > 0 ? <PaymentsTable payments={filteredPayments} /> : <EmptyState />}
+        {filteredPayments.length > 0 ? (
+          <>
+            <PaymentsTable payments={filteredPayments} />
+            <PaymentsCards payments={filteredPayments} />
+          </>
+        ) : (
+          <EmptyState />
+        )}
       </section>
     </div>
   )
@@ -76,7 +82,7 @@ function Toolbar({ search, onSearch, value, onChange }: { search: string; onSear
 
 function PaymentsTable({ payments: tablePayments }: { payments: Payment[] }) {
   return (
-    <div className="overflow-hidden rounded-md border bg-card admin-card-shadow">
+    <div className="hidden overflow-hidden rounded-md border bg-card admin-card-shadow lg:block">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[920px] border-collapse text-left text-sm">
           <thead className="bg-muted"><tr>{['Payment', 'Customer', 'Purpose', 'Amount', 'Mode', 'Date', 'Status', 'Actions'].map((header) => <th key={header} className="border-b px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{header}</th>)}</tr></thead>
@@ -96,6 +102,144 @@ function PaymentsTable({ payments: tablePayments }: { payments: Payment[] }) {
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+function PaymentsCards({ payments: cardPayments }: { payments: Payment[] }) {
+  const [expandedPaymentId, setExpandedPaymentId] = useState<string | null>(null)
+
+  return (
+    <div className="space-y-3 lg:hidden">
+      {cardPayments.map((payment) => {
+        const isExpanded = expandedPaymentId === payment.id
+
+        return (
+          <div
+            key={payment.id}
+            className={cn(
+              'rounded-md border p-4',
+              payment.status === 'Paid' && 'border-[#c8f3e4] bg-[#f3fdf9]',
+              payment.status === 'Pending' && 'border-[#ffe2b8] bg-[#fffbf2]',
+              payment.status === 'Overdue' && 'border-[#ffd0d7] bg-[#fff6f7]',
+            )}
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-white/70 pb-3">
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold text-foreground">{payment.customer}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="rounded bg-card/70 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    {payment.id}
+                  </span>
+                  <PaymentBadge status={payment.status} />
+                </div>
+              </div>
+              <span
+                className={cn(
+                  'grid h-9 w-9 shrink-0 place-items-center rounded-md',
+                  payment.status === 'Paid' && 'bg-[#ecfbf6] text-secondary',
+                  payment.status === 'Pending' && 'bg-[#fff6e7] text-[#ff9f43]',
+                  payment.status === 'Overdue' && 'bg-[#fff1f3] text-primary',
+                )}
+              >
+                <IndianRupee size={18} strokeWidth={1.75} />
+              </span>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <PaymentQuickFact icon={Phone} label="Phone" value={payment.phone} />
+              <PaymentQuickFact icon={IndianRupee} label="Amount" value={`₹${payment.amount}`} />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setExpandedPaymentId(isExpanded ? null : payment.id)}
+              className="mt-3 flex w-full cursor-pointer items-center justify-between gap-3 rounded-md border bg-card/75 px-3 py-2 text-left transition-colors hover:bg-card"
+            >
+              <span>
+                <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {isExpanded ? 'Hide details' : 'Details'}
+                </span>
+                <span className="mt-0.5 block text-sm font-semibold text-foreground">
+                  {payment.purpose}
+                </span>
+              </span>
+              <ChevronDown
+                size={16}
+                strokeWidth={1.75}
+                className={cn('shrink-0 text-muted-foreground transition-transform', isExpanded && 'rotate-180')}
+              />
+            </button>
+
+            {isExpanded ? (
+              <>
+                <div className="mt-3 grid gap-2 rounded-md border bg-card/75 p-3 text-sm">
+                  <PaymentInfoLine icon={Receipt} label="Purpose" text={payment.purpose} strong />
+                  <PaymentInfoLine icon={CalendarClock} label="Date" text={payment.date} />
+                  <PaymentInfoLine icon={IndianRupee} label="Mode" text={payment.mode} />
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button type="button" size="sm" variant="outline" className="w-full">
+                    <Phone size={15} strokeWidth={1.75} />
+                    Call
+                  </Button>
+                  <Button type="button" size="sm" className="w-full">
+                    <Receipt size={15} strokeWidth={1.75} />
+                    Receipt
+                  </Button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function PaymentQuickFact({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Phone
+  label: string
+  value: string
+}) {
+  return (
+    <div className="min-w-0 rounded-md border bg-card/70 px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        <Icon size={13} strokeWidth={1.75} />
+        {label}
+      </div>
+      <p className="mt-1 truncate text-sm font-semibold text-foreground">{value}</p>
+    </div>
+  )
+}
+
+function PaymentInfoLine({
+  icon: Icon,
+  label,
+  text,
+  strong = false,
+}: {
+  icon: typeof Phone
+  label: string
+  text: string
+  strong?: boolean
+}) {
+  return (
+    <div className="flex items-start gap-2">
+      <Icon size={15} strokeWidth={1.75} className="mt-0.5 shrink-0 text-muted-foreground" />
+      <p className="min-w-0">
+        <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          {label}
+        </span>
+        <span className={cn('mt-0.5 block truncate', strong ? 'font-semibold text-foreground' : 'text-foreground')}>
+          {text}
+        </span>
+      </p>
     </div>
   )
 }

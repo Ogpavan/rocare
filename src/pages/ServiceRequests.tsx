@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
+  ChevronDown,
   CheckCircle2,
   Clock,
   Download,
@@ -153,16 +154,13 @@ export function ServiceRequests() {
           <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-[28px]">
             Service Requests
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Track customer complaints, assign technicians, and follow today&apos;s service visits.
-          </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <Button type="button" variant="outline" className="w-full sm:w-auto">
             <Download size={16} strokeWidth={1.75} />
             Export
           </Button>
-          <Button type="button">
+          <Button type="button" className="w-full sm:w-auto">
             <Plus size={16} strokeWidth={1.75} />
             New Request
           </Button>
@@ -171,14 +169,14 @@ export function ServiceRequests() {
 
       <section className="space-y-4">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap gap-2">
+          <div className="hidden flex-wrap gap-2 lg:flex">
             {statusOptions.map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => setStatus(option)}
                 className={cn(
-                  'h-9 rounded-md border bg-card px-3 text-sm font-medium text-muted-foreground transition-colors',
+                  'h-9 cursor-pointer rounded-md border bg-card px-3 text-sm font-medium text-muted-foreground transition-colors',
                   status === option && 'border-primary bg-accent text-primary',
                 )}
               >
@@ -187,6 +185,30 @@ export function ServiceRequests() {
             ))}
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3 lg:contents">
+              <select
+                value={status}
+                onChange={(event) => setStatus(event.target.value as RequestStatus | 'All')}
+                className="h-10 min-w-0 rounded-md border bg-card px-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 lg:hidden"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option === 'All' ? 'All Status' : option}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={priority}
+                onChange={(event) => setPriority(event.target.value as RequestPriority | 'All')}
+                className="h-10 min-w-0 rounded-md border bg-card px-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+              >
+                {priorityOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option === 'All' ? 'All Priorities' : `${option} Priority`}
+                  </option>
+                ))}
+              </select>
+            </div>
             <label className="relative block sm:w-[340px]">
               <Search
                 size={17}
@@ -200,17 +222,6 @@ export function ServiceRequests() {
                 className="h-10 w-full rounded-md border bg-card pl-10 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
               />
             </label>
-            <select
-              value={priority}
-              onChange={(event) => setPriority(event.target.value as RequestPriority | 'All')}
-              className="h-10 rounded-md border bg-card px-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
-            >
-              {priorityOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option === 'All' ? 'All Priorities' : `${option} Priority`}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
@@ -219,7 +230,10 @@ export function ServiceRequests() {
         </p>
 
         {filteredRequests.length > 0 ? (
-          <RequestsTable requests={filteredRequests} />
+          <>
+            <RequestsTable requests={filteredRequests} />
+            <RequestsCards requests={filteredRequests} />
+          </>
         ) : (
           <div className="grid min-h-[220px] place-items-center rounded-md border bg-muted/35 px-4 text-center">
             <div>
@@ -241,7 +255,7 @@ type RequestsTableProps = {
 
 function RequestsTable({ requests: tableRequests }: RequestsTableProps) {
   return (
-    <div className="overflow-hidden rounded-md border bg-card admin-card-shadow">
+    <div className="hidden overflow-hidden rounded-md border bg-card admin-card-shadow lg:block">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1120px] border-collapse text-left text-sm">
           <thead className="bg-muted">
@@ -345,6 +359,168 @@ function RequestsTable({ requests: tableRequests }: RequestsTableProps) {
           </tbody>
         </table>
       </div>
+    </div>
+  )
+}
+
+function RequestsCards({ requests: cardRequests }: RequestsTableProps) {
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null)
+
+  return (
+    <div className="space-y-3 lg:hidden">
+      {cardRequests.map((request) => {
+        const isExpanded = expandedRequestId === request.id
+
+        return (
+          <div
+            key={request.id}
+            className={cn(
+              'rounded-md border p-4',
+              request.status === 'New' && 'border-[#ffd0d7] bg-[#fff6f7]',
+              request.status === 'Assigned' && 'border-[#cfeaff] bg-[#f4faff]',
+              request.status === 'In Progress' && 'border-[#ffe2b8] bg-[#fffbf2]',
+              request.status === 'Done' && 'border-[#c8f3e4] bg-[#f3fdf9]',
+            )}
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-white/70 pb-3">
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold text-foreground">{request.issue}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="rounded bg-card/70 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    {request.id}
+                  </span>
+                  <StatusBadge status={request.status} />
+                </div>
+              </div>
+              <span
+                className={cn(
+                  'grid h-9 w-9 shrink-0 place-items-center rounded-md',
+                  request.status === 'New' && 'bg-[#fff1f3] text-primary',
+                  request.status === 'Assigned' && 'bg-[#edf7ff] text-[#1e9ff2]',
+                  request.status === 'In Progress' && 'bg-[#fff6e7] text-[#ff9f43]',
+                  request.status === 'Done' && 'bg-[#ecfbf6] text-secondary',
+                )}
+              >
+                <Wrench size={18} strokeWidth={1.75} />
+              </span>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <RequestQuickFact icon={UserCog} label="Customer" value={request.customer} />
+              <RequestQuickFact icon={MapPin} label="Area" value={request.area} />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setExpandedRequestId(isExpanded ? null : request.id)}
+              className="mt-3 flex w-full cursor-pointer items-center justify-between gap-3 rounded-md border bg-card/75 px-3 py-2 text-left transition-colors hover:bg-card"
+            >
+              <span>
+                <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {isExpanded ? 'Hide details' : 'Details'}
+                </span>
+                <span className="mt-0.5 block text-sm font-semibold text-foreground">
+                  Visit: {request.visitTime}
+                </span>
+              </span>
+              <ChevronDown
+                size={16}
+                strokeWidth={1.75}
+                className={cn('shrink-0 text-muted-foreground transition-transform', isExpanded && 'rotate-180')}
+              />
+            </button>
+
+            {isExpanded ? (
+              <>
+                <div className="mt-3 grid gap-2 text-sm">
+                  <MobileInfoLine icon={Phone} label="Phone" text={request.phone} />
+                  <MobileInfoLine icon={Wrench} label="RO Unit" text={request.roUnit} strong />
+                </div>
+
+                <div className="mt-3 grid gap-2 rounded-md border bg-card/75 p-3 text-sm">
+                  <MobileInfoLine icon={Clock} label="Visit Time" text={request.visitTime} strong />
+                  <MobileInfoLine icon={UserCog} label="Technician" text={request.technician} />
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      Priority
+                    </span>
+                    <PriorityBadge priority={request.priority} />
+                  </div>
+                </div>
+
+                <p className="mt-3 rounded-md border bg-card/75 px-3 py-2 text-sm leading-6 text-muted-foreground">
+                  {request.note}
+                </p>
+
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <Button type="button" size="sm" variant="outline" className="w-full">
+                    <Phone size={15} strokeWidth={1.75} />
+                    Call
+                  </Button>
+                  <Button type="button" size="sm" variant="secondary" className="w-full">
+                    <UserCog size={15} strokeWidth={1.75} />
+                    Assign
+                  </Button>
+                  <Button type="button" size="sm" className="w-full">
+                    {request.status === 'Done' ? (
+                      <CheckCircle2 size={15} strokeWidth={1.75} />
+                    ) : (
+                      <ShieldAlert size={15} strokeWidth={1.75} />
+                    )}
+                    {request.status === 'Done' ? 'Done' : 'Close'}
+                  </Button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function RequestQuickFact({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Phone
+  label: string
+  value: string
+}) {
+  return (
+    <div className="min-w-0 rounded-md border bg-card/70 px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        <Icon size={13} strokeWidth={1.75} />
+        {label}
+      </div>
+      <p className="mt-1 truncate text-sm font-semibold text-foreground">{value}</p>
+    </div>
+  )
+}
+
+function MobileInfoLine({
+  icon: Icon,
+  label,
+  text,
+  strong = false,
+}: {
+  icon: typeof Phone
+  label: string
+  text: string
+  strong?: boolean
+}) {
+  return (
+    <div className="flex items-start gap-2">
+      <Icon size={15} strokeWidth={1.75} className="mt-0.5 shrink-0 text-muted-foreground" />
+      <p className="min-w-0">
+        <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          {label}
+        </span>
+        <span className={cn('mt-0.5 block truncate', strong ? 'font-semibold text-foreground' : 'text-foreground')}>
+          {text}
+        </span>
+      </p>
     </div>
   )
 }

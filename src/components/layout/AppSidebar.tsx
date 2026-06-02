@@ -16,7 +16,7 @@ export function AppSidebar({ isCollapsed, isOpen, onClose }: AppSidebarProps) {
         type="button"
         aria-label="Close sidebar overlay"
         className={cn(
-          'fixed bottom-0 left-0 right-0 top-[70px] z-30 bg-[#464855]/30 transition-opacity lg:hidden',
+          'fixed bottom-0 left-0 right-0 top-[70px] z-30 cursor-pointer bg-[#464855]/30 transition-opacity lg:hidden',
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         onClick={onClose}
@@ -39,7 +39,7 @@ export function AppSidebar({ isCollapsed, isOpen, onClose }: AppSidebarProps) {
                 onClick={onClose}
                 className={({ isActive }) =>
                   cn(
-                    'group relative flex min-h-[114px] flex-col items-center justify-center gap-3 border-b px-3 text-center text-[13px] font-normal leading-5 text-muted-foreground transition-colors',
+                    'group relative flex min-h-[114px] cursor-pointer flex-col items-center justify-center gap-3 border-b px-3 text-center text-[13px] font-normal leading-5 text-muted-foreground transition-colors',
                     'hover:bg-muted hover:text-foreground',
                     isActive &&
                       'bg-[#fbfbfd] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] before:absolute before:bottom-0 before:left-0 before:top-0 before:w-[3px] before:bg-primary before:content-[""] after:absolute after:bottom-0 after:-right-[6px] after:top-0 after:z-10 after:w-[3px] after:bg-primary after:content-[""]',

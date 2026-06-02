@@ -1,8 +1,12 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import {
   CalendarClock,
+  ChevronDown,
   Download,
   Droplets,
+  History,
   IndianRupee,
   MapPin,
   Phone,
@@ -16,91 +20,9 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Popup } from '@/components/ui/popup'
+import { customers, type Customer, type CustomerStatus } from '@/data/customers'
 import { cn } from '@/lib/utils'
-
-type CustomerStatus = 'Active' | 'Service Due' | 'AMC Expiring'
-
-type Customer = {
-  id: string
-  name: string
-  phone: string
-  area: string
-  roUnit: string
-  lastService: string
-  nextService: string
-  technician: string
-  amcStatus: string
-  dueAmount: number
-  status: CustomerStatus
-}
-
-const customers: Customer[] = [
-  {
-    id: 'CUS-1001',
-    name: 'Amit Sharma',
-    phone: '+91 98765 43210',
-    area: 'Salt Lake',
-    roUnit: 'Aquaguard RO Max',
-    lastService: '18 May 2026',
-    nextService: '18 Jun 2026',
-    technician: 'Rahul',
-    amcStatus: 'Active till Dec 2026',
-    dueAmount: 0,
-    status: 'Active',
-  },
-  {
-    id: 'CUS-1002',
-    name: 'Priya Singh',
-    phone: '+91 91234 55678',
-    area: 'New Town',
-    roUnit: 'Kent Supreme',
-    lastService: '02 Apr 2026',
-    nextService: '04 Jun 2026',
-    technician: 'Sourav',
-    amcStatus: 'Active till Aug 2026',
-    dueAmount: 450,
-    status: 'Service Due',
-  },
-  {
-    id: 'CUS-1003',
-    name: 'Ramesh Gupta',
-    phone: '+91 99887 77665',
-    area: 'Dum Dum',
-    roUnit: 'Pureit Copper+',
-    lastService: '22 Mar 2026',
-    nextService: '08 Jun 2026',
-    technician: 'Bikash',
-    amcStatus: 'Expires in 14 days',
-    dueAmount: 1200,
-    status: 'AMC Expiring',
-  },
-  {
-    id: 'CUS-1004',
-    name: 'Neha Verma',
-    phone: '+91 90909 11880',
-    area: 'Rajarhat',
-    roUnit: 'Livpure Smart',
-    lastService: '29 May 2026',
-    nextService: '29 Jul 2026',
-    technician: 'Rahul',
-    amcStatus: 'Active till Jan 2027',
-    dueAmount: 0,
-    status: 'Active',
-  },
-  {
-    id: 'CUS-1005',
-    name: 'Sanjay Das',
-    phone: '+91 93300 44551',
-    area: 'Barasat',
-    roUnit: 'AO Smith Z8',
-    lastService: '14 Apr 2026',
-    nextService: '03 Jun 2026',
-    technician: 'Anirban',
-    amcStatus: 'Active till Sep 2026',
-    dueAmount: 650,
-    status: 'Service Due',
-  },
-]
 
 const statusOptions: Array<CustomerStatus | 'All'> = [
   'All',
@@ -109,11 +31,23 @@ const statusOptions: Array<CustomerStatus | 'All'> = [
   'AMC Expiring',
 ]
 
-const customerTableHeaders = ['Customer', 'Phone', 'Area', 'RO Unit', 'Next Service', 'Status', 'AMC', 'Due']
+const customerTableHeaders = [
+  'Customer',
+  'Phone',
+  'Area',
+  'RO Unit',
+  'Next Service',
+  'Status',
+  'AMC',
+  'Due',
+  'Actions',
+]
 
 export function Customers() {
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<CustomerStatus | 'All'>('All')
+  const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false)
 
   const filteredCustomers = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -142,23 +76,20 @@ export function Customers() {
           <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-[28px]">
             Customers
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Find customer details, service dates, AMC status, and pending payment in one place.
-          </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <Button type="button" variant="outline" className="w-full sm:w-auto">
             <Download size={16} strokeWidth={1.75} />
             Export
           </Button>
-          <Button type="button">
+          <Button type="button" className="w-full sm:w-auto" onClick={() => setIsAddCustomerOpen(true)}>
             <Plus size={16} strokeWidth={1.75} />
             Add Customer
           </Button>
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <SummaryCard title="Total Customers" value={customers.length.toString()} icon={Users} />
         <SummaryCard title="Service Due" value={serviceDue.toString()} icon={Wrench} tone="primary" />
         <SummaryCard title="AMC Expiring" value={amcExpiring.toString()} icon={ShieldCheck} tone="warning" />
@@ -203,8 +134,14 @@ export function Customers() {
         <CardContent>
           {filteredCustomers.length > 0 ? (
             <>
-              <CustomersTable customers={filteredCustomers} />
-              <CustomersCards customers={filteredCustomers} />
+              <CustomersTable
+                customers={filteredCustomers}
+                onViewTimeline={(customerId) => navigate(`/customers/${customerId}/timeline`)}
+              />
+              <CustomersCards
+                customers={filteredCustomers}
+                onViewTimeline={(customerId) => navigate(`/customers/${customerId}/timeline`)}
+              />
             </>
           ) : (
             <div className="grid min-h-[220px] place-items-center rounded-md border bg-muted/35 px-4 text-center">
@@ -218,6 +155,24 @@ export function Customers() {
           )}
         </CardContent>
       </Card>
+      <Popup
+        open={isAddCustomerOpen}
+        title="Add Customer"
+        description="Enter basic customer, RO, service, and AMC details."
+        onClose={() => setIsAddCustomerOpen(false)}
+        footer={
+          <>
+            <Button type="button" variant="outline" onClick={() => setIsAddCustomerOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={() => setIsAddCustomerOpen(false)}>
+              Save Customer
+            </Button>
+          </>
+        }
+      >
+        <AddCustomerForm />
+      </Popup>
     </div>
   )
 }
@@ -232,14 +187,14 @@ type SummaryCardProps = {
 function SummaryCard({ title, value, icon: Icon, tone = 'default' }: SummaryCardProps) {
   return (
     <Card>
-      <CardContent className="flex items-center justify-between p-5">
+      <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+          <p className="mt-2 text-xl font-semibold text-foreground sm:text-2xl">{value}</p>
         </div>
         <span
           className={cn(
-            'grid h-11 w-11 place-items-center rounded-md',
+            'grid h-10 w-10 shrink-0 place-items-center rounded-md sm:h-11 sm:w-11',
             tone === 'default' && 'bg-muted text-muted-foreground',
             tone === 'primary' && 'bg-[#fff1f3] text-primary',
             tone === 'secondary' && 'bg-[#ecfbf6] text-secondary',
@@ -253,10 +208,15 @@ function SummaryCard({ title, value, icon: Icon, tone = 'default' }: SummaryCard
   )
 }
 
-function CustomersTable({ customers: tableCustomers }: CustomersCardsProps) {
+type CustomerListProps = {
+  customers: Customer[]
+  onViewTimeline: (customerId: string) => void
+}
+
+function CustomersTable({ customers: tableCustomers, onViewTimeline }: CustomerListProps) {
   return (
-    <div className="hidden overflow-hidden rounded-md border lg:block">
-      <table className="w-full border-collapse text-left text-sm">
+    <div className="hidden overflow-x-auto rounded-md border lg:block">
+      <table className="w-full min-w-[1080px] border-collapse text-left text-sm">
         <thead className="bg-muted">
           <tr>
             {customerTableHeaders.map((header) => (
@@ -292,6 +252,17 @@ function CustomersTable({ customers: tableCustomers }: CustomersCardsProps) {
                   {customer.dueAmount > 0 ? `₹${customer.dueAmount}` : 'Paid'}
                 </span>
               </td>
+              <td className="border-b px-4 py-4">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onViewTimeline(customer.id)}
+                >
+                  <History size={15} strokeWidth={1.75} />
+                  View
+                </Button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -300,55 +271,195 @@ function CustomersTable({ customers: tableCustomers }: CustomersCardsProps) {
   )
 }
 
-type CustomersCardsProps = {
-  customers: Customer[]
-}
+function CustomersCards({ customers: cardCustomers, onViewTimeline }: CustomerListProps) {
+  const [expandedCustomerId, setExpandedCustomerId] = useState<string | null>(null)
 
-function CustomersCards({ customers: cardCustomers }: CustomersCardsProps) {
   return (
     <div className="space-y-3 lg:hidden">
-      {cardCustomers.map((customer) => (
-        <div key={customer.id} className="rounded-md border bg-card p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="font-semibold text-foreground">{customer.name}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{customer.id}</p>
+      {cardCustomers.map((customer) => {
+        const isExpanded = expandedCustomerId === customer.id
+
+        return (
+          <div
+            key={customer.id}
+            className={cn(
+              'rounded-md border p-4',
+              customer.status === 'Active' && 'border-[#c8f3e4] bg-[#f3fdf9]',
+              customer.status === 'Service Due' && 'border-[#ffd0d7] bg-[#fff6f7]',
+              customer.status === 'AMC Expiring' && 'border-[#ffe2b8] bg-[#fffbf2]',
+            )}
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-white/70 pb-3">
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold text-foreground">{customer.name}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <span className="rounded bg-card/70 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    {customer.id}
+                  </span>
+                  <StatusBadge status={customer.status} />
+                </div>
+              </div>
+              <span
+                className={cn(
+                  'grid h-9 w-9 shrink-0 place-items-center rounded-md',
+                  customer.status === 'Active' && 'bg-[#ecfbf6] text-secondary',
+                  customer.status === 'Service Due' && 'bg-[#fff1f3] text-primary',
+                  customer.status === 'AMC Expiring' && 'bg-[#fff6e7] text-[#ff9f43]',
+                )}
+              >
+                <Users size={18} strokeWidth={1.75} />
+              </span>
             </div>
-            <StatusBadge status={customer.status} />
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <QuickFact icon={Phone} label="Phone" value={customer.phone} />
+              <QuickFact icon={MapPin} label="Area" value={customer.area} />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setExpandedCustomerId(isExpanded ? null : customer.id)}
+              className="mt-3 flex w-full cursor-pointer items-center justify-between gap-3 rounded-md border bg-card/75 px-3 py-2 text-left transition-colors hover:bg-card"
+            >
+              <span>
+                <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {isExpanded ? 'Hide details' : 'Details'}
+                </span>
+                <span className="mt-0.5 block text-sm font-semibold text-foreground">
+                  Next service: {customer.nextService}
+                </span>
+              </span>
+              <ChevronDown
+                size={16}
+                strokeWidth={1.75}
+                className={cn('shrink-0 text-muted-foreground transition-transform', isExpanded && 'rotate-180')}
+              />
+            </button>
+
+            {isExpanded ? (
+              <>
+                <div className="mt-3 grid gap-2 text-sm">
+                  <InfoLine icon={Droplets} label="RO Unit" text={customer.roUnit} strong />
+                </div>
+                <div className="mt-3 grid gap-2 rounded-md border bg-card/75 p-3 text-sm">
+                  <InfoLine icon={CalendarClock} label="Next Service" text={customer.nextService} strong />
+                  <InfoLine icon={UserCheck} label="Technician" text={customer.technician} />
+                  <InfoLine icon={ShieldCheck} label="AMC" text={customer.amcStatus} strong />
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => onViewTimeline(customer.id)}
+                  >
+                    <History size={15} strokeWidth={1.75} />
+                    View
+                  </Button>
+                  <Button type="button" size="sm" variant="secondary" className="w-full">
+                    Call
+                  </Button>
+                </div>
+              </>
+            ) : null}
           </div>
-          <div className="mt-4 grid gap-3 text-sm text-muted-foreground">
-            <InfoLine icon={Phone} text={customer.phone} />
-            <InfoLine icon={MapPin} text={customer.area} />
-            <InfoLine icon={Droplets} text={customer.roUnit} />
-            <InfoLine icon={CalendarClock} text={`Next service: ${customer.nextService}`} />
-            <InfoLine icon={UserCheck} text={`Technician: ${customer.technician}`} />
-            <InfoLine icon={ShieldCheck} text={customer.amcStatus} />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="outline">
-              View
-            </Button>
-            <Button type="button" size="sm" variant="secondary">
-              Call
-            </Button>
-          </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
+  )
+}
+
+function QuickFact({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Phone
+  label: string
+  value: string
+}) {
+  return (
+    <div className="min-w-0 rounded-md border bg-card/70 px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        <Icon size={13} strokeWidth={1.75} />
+        {label}
+      </div>
+      <p className="mt-1 truncate text-sm font-semibold text-foreground">{value}</p>
+    </div>
+  )
+}
+
+function AddCustomerForm() {
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-4 md:grid-cols-2">
+        <FormField label="Customer Name" />
+        <FormField label="Phone Number" />
+        <FormField label="Area" />
+        <FormField label="Address" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <FormField label="RO Brand / Model" />
+        <FormField label="Installation Date" type="date" />
+        <FormField label="Next Service Date" type="date" />
+        <label className="block">
+          <span className="text-sm font-medium text-muted-foreground">Customer Status</span>
+          <select className="mt-2 h-10 w-full rounded-md border bg-card px-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15">
+            <option>Active</option>
+            <option>Service Due</option>
+            <option>AMC Expiring</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <FormField label="AMC / Warranty" />
+        <FormField label="Due Amount" type="number" />
+      </div>
+    </div>
+  )
+}
+
+function FormField({
+  label,
+  type = 'text',
+}: {
+  label: string
+  type?: string
+}) {
+  return (
+    <label className="block">
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
+      <input
+        type={type}
+        className="mt-2 h-10 w-full rounded-md border bg-card px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
+      />
+    </label>
   )
 }
 
 type InfoLineProps = {
   icon: typeof Phone
+  label: string
   text: string
+  strong?: boolean
 }
 
-function InfoLine({ icon: Icon, text }: InfoLineProps) {
+function InfoLine({ icon: Icon, label, text, strong = false }: InfoLineProps) {
   return (
-    <p className="flex items-center gap-2">
-      <Icon size={15} strokeWidth={1.75} className="text-muted-foreground" />
-      <span>{text}</span>
-    </p>
+    <div className="flex items-start gap-2">
+      <Icon size={15} strokeWidth={1.75} className="mt-0.5 shrink-0 text-muted-foreground" />
+      <p className="min-w-0">
+        <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          {label}
+        </span>
+        <span className={cn('mt-0.5 block truncate', strong ? 'font-semibold text-foreground' : 'text-foreground')}>
+          {text}
+        </span>
+      </p>
+    </div>
   )
 }
 

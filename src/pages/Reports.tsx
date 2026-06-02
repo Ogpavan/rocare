@@ -18,12 +18,11 @@ export function Reports() {
       <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-[28px]">Reports</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Simple business summary for revenue, services, and collection.</p>
         </div>
         <Button type="button" variant="outline"><Download size={16} strokeWidth={1.75} />Export Report</Button>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <ReportCard title="Revenue" value="₹4.2L" icon={IndianRupee} />
         <ReportCard title="Services" value="72" icon={Wrench} />
         <ReportCard title="Renewals" value="18" icon={CalendarClock} />
@@ -57,13 +56,13 @@ export function Reports() {
 
 function ReportCard({ title, value, icon: Icon }: { title: string; value: string; icon: LucideIcon }) {
   return (
-    <div className="flex items-center justify-between rounded-md border bg-card p-5 admin-card-shadow">
+    <div className="flex items-center justify-between gap-3 rounded-md border bg-card p-4 admin-card-shadow sm:p-5">
       <div>
         <p className="text-sm text-muted-foreground">{title}</p>
-        <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+        <p className="mt-2 text-xl font-semibold text-foreground sm:text-2xl">{value}</p>
       </div>
-      <span className="grid h-11 w-11 place-items-center rounded-md bg-[#fff1f3] text-primary">
-        <Icon size={22} strokeWidth={1.75} />
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#fff1f3] text-primary sm:h-11 sm:w-11">
+        <Icon size={20} strokeWidth={1.75} />
       </span>
     </div>
   )

@@ -1,9 +1,7 @@
 import {
   BarChart3,
-  Boxes,
   CreditCard,
   LayoutDashboard,
-  Package,
   Settings,
   ShieldCheck,
   UserCog,
@@ -30,11 +28,6 @@ export const sidebarLinks: SidebarLink[] = [
     icon: Users,
   },
   {
-    label: 'RO Units',
-    path: '/ro-units',
-    icon: Package,
-  },
-  {
     label: 'Service Requests',
     path: '/service-requests',
     icon: Wrench,
@@ -48,11 +41,6 @@ export const sidebarLinks: SidebarLink[] = [
     label: 'Technicians',
     path: '/technicians',
     icon: UserCog,
-  },
-  {
-    label: 'Inventory',
-    path: '/inventory',
-    icon: Boxes,
   },
   {
     label: 'Payments',

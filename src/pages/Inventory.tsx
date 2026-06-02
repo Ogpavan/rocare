@@ -48,7 +48,6 @@ export function Inventory() {
     <div className="space-y-5">
       <PageHeader
         title="Inventory"
-        subtitle="Check stock, reorder low items, and keep service parts ready."
         primaryLabel="Add Item"
         primaryIcon={PackagePlus}
       />
@@ -121,12 +120,11 @@ function StockBadge({ status }: { status: StockStatus }) {
   )
 }
 
-function PageHeader({ title, subtitle, primaryLabel, primaryIcon: PrimaryIcon }: { title: string; subtitle: string; primaryLabel: string; primaryIcon: LucideIcon }) {
+function PageHeader({ title, primaryLabel, primaryIcon: PrimaryIcon }: { title: string; primaryLabel: string; primaryIcon: LucideIcon }) {
   return (
     <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h1 className="text-2xl font-semibold tracking-normal text-foreground sm:text-[28px]">{title}</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{subtitle}</p>
       </div>
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline"><Download size={16} strokeWidth={1.75} />Export</Button>
